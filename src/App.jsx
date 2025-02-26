@@ -5,7 +5,7 @@ const App = () => {
   const [books, setBooks] = useState([]);
   const [newBook, setNewBook] = useState({ title: '', author: '', image_url: ''});
   const [editBook, setEditBook] = useState(null);
-  const uri = 'https://scaling-parakeet-5gv9p6vpv6c4977-5001.app.github.dev/'
+  const uri = 'https://symmetrical-broccoli-ggvrqw49r5vfv4q5-5001.app.github.dev/'
   useEffect(() => {
     fetchBooks();
   }, []);
@@ -28,7 +28,15 @@ const App = () => {
     }
   };
 
+  const isFormValid = (bookData) => {
+    return bookData.title.trim() !== '' && bookData.author.trim() !== '' && bookData.image_url.trim() !== '';
+  }
+
   const handleCreateBook = async () => {
+    if(!isFormValid(newBook)) {
+      alert("พบช่องที่ไม่ได้ใส่ค่า โปรดใส่ด้วย");
+      return;
+    }
     try {
       const response = await axios.post(`${uri}/books`, newBook);
       setBooks([...books, response.data]);
@@ -43,10 +51,18 @@ const App = () => {
   };
 
   const handleUpdateBook = async () => {
+    if(!isFormValid(editBook)) {
+      alert("พบช่องที่ไม่ได้ใส่ค่า โปรดใส่ด้วย");
+      return;
+    }
+
+    const updatedData = { ...editBook };
+    delete updatedData._id;
+    
     try {
-      const response = await axios.put(`${uri}/books/${editBook.id}`, editBook);
+      const response = await axios.put(`${uri}/books/${editBook.book_id}`, editBook);
       const updatedBooks = books.map((book) =>
-        book.id === editBook.id ? response.data : book
+        book.title === editBook.title ? response.data : book
       );
       setBooks(updatedBooks);
       setEditBook(null); // Clear edit mode
@@ -55,10 +71,10 @@ const App = () => {
     }
   };
 
-  const handleDeleteBook = async (bookId) => {
+  const handleDeleteBook = async (title) => {
     try {
-      await axios.delete(`${uri}/books/${bookId}`);
-      const filteredBooks = books.filter((book) => book.id !== bookId);
+      await axios.delete(`${uri}/books/${title}`);
+      const filteredBooks = books.filter((book) => book.title !== title);
       setBooks(filteredBooks);
     } catch (error) {
       console.error('Error deleting book:', error);
@@ -80,10 +96,10 @@ const App = () => {
         </thead>
         <tbody>
           {books.map((book) => (
-            <tr key={book.id}>
-              <td>{book.id}</td>
+            <tr key={book.book_id}>
+              <td>{book.book_id}</td>
               <td>
-              {editBook && editBook.id === book.id ? (
+              {editBook && editBook.book_id === book.book_id ? (
                 <input
                   type="text"
                   name="image_url"
@@ -95,7 +111,7 @@ const App = () => {
                 )}
               </td>
               <td>
-                {editBook && editBook.id === book.id ? (
+                {editBook && editBook.book_id === book.book_id ? (
                   <input
                     type="text"
                     name="title"
@@ -107,7 +123,7 @@ const App = () => {
                 )}
               </td>
               <td>
-                {editBook && editBook.id === book.id ? (
+                {editBook && editBook.book_id === book.book_id ? (
                   <input
                     type="text"
                     name="author"
@@ -119,12 +135,12 @@ const App = () => {
                 )}
               </td>
               <td>
-                {editBook && editBook.id === book.id ? (
+                {editBook && editBook.book_id === book.book_id ? (
                   <button onClick={handleUpdateBook}>Update</button>
                 ) : (
                   <button onClick={() => handleEditBook(book)}>Edit</button>
                 )}
-                <button onClick={() => handleDeleteBook(book.id)}>Delete</button>
+                <button onClick={() => handleDeleteBook(book.book_id)}>Delete</button>
               </td>
             </tr>
           ))}
